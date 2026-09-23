@@ -73,6 +73,15 @@ def download_cmd(
         bool,
         typer.Option("--no-replaygain", help="Disable ReplayGain tagging."),
     ] = False,
+    replaygain_loudness: Annotated[
+        int,
+        typer.Option(
+            "--replaygain-loudness",
+            min=-30,
+            max=0,
+            help="ReplayGain target loudness in LUFS.",
+        ),
+    ] = -14,
     ascii_filenames: Annotated[
         bool,
         typer.Option(
@@ -122,6 +131,7 @@ def download_cmd(
             save_cover=not no_cover,
             max_items=max_items,
             apply_replaygain=not no_replaygain,
+            replaygain_loudness=replaygain_loudness,
         )
         service = PlaylistDownloadService(config, cookies_path=cookies)
 
