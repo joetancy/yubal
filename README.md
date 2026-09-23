@@ -68,7 +68,7 @@ When downloading a playlist, each track lives in its album folder; the M3U file 
 - **Smart deduplication** — Same track across 10 playlists? Stored once, referenced everywhere
 - **Reliable downloads** — Automatic retry on failures, graceful cancellation
 - **Automatic lyrics** — Synced `.lrc` files for karaoke-style playback in supported players
-- **ReplayGain tagging** — Explicit loudness target (default **-14 LUFS**), track gain for playlists/singles, album gain for complete albums, and full-library rescans from the web UI or CLI
+- **ReplayGain tagging** — Track gain for consistent volume; album gain when downloading complete albums
 - **Format options** — `opus` (best quality/size), mp3, or m4a — direct download when available, transcoded otherwise
 - **Media server ready** — Tested with [Navidrome, Jellyfin, and Gonic](#-media-server-integration)
 - **[CLI](packages/yubal/src/yubal/cli/README.md)** — Download and inspect metadata from the terminal
@@ -104,7 +104,6 @@ services:
       PGID: 1000
       YUBAL_SCHEDULER_CRON: "0 0 * * *"
       YUBAL_DOWNLOAD_UGC: false
-      YUBAL_REPLAYGAIN_LOUDNESS: -14
       YUBAL_TZ: UTC
     volumes:
       - ./data:/app/data
@@ -159,43 +158,12 @@ docker compose up -d
 
 ### ReplayGain
 
-ReplayGain is enabled by default and uses an explicit target loudness of
-**-14 LUFS**.
+ReplayGain is enabled by default and uses a target loudness of **-14 LUFS**.
+Change it with `YUBAL_REPLAYGAIN_LOUDNESS`.
 
-Configure the target with:
-
-```yaml
-environment:
-  YUBAL_REPLAYGAIN: true
-  YUBAL_REPLAYGAIN_LOUDNESS: -14
-```
-
-New downloads are tagged automatically using the configured target. Yubal uses
-track gain for playlists, partial albums, and individual tracks. Complete album
-downloads also receive album gain.
-
-For Opus files, Yubal writes RFC 7845-compatible `R128_TRACK_GAIN` and
-`R128_ALBUM_GAIN` tags.
-
-#### Full-library rescan
-
-To recalculate ReplayGain for music that already exists in your library, open
-the **Downloads** page and select:
-
-**ReplayGain → Rescan ReplayGain**
-
-The rescan:
-
-- scans the entire configured music library recursively
-- uses `YUBAL_REPLAYGAIN_LOUDNESS` as the target
-- defaults to **-14 LUFS**
-- recalculates tracks that already contain ReplayGain tags
-- uses all available CPU threads by default
-- calculates album gain per album directory
-- does **not** re-encode or alter the audio stream
-
-The button is disabled while a rescan is running. The UI reports when the scan
-completes or fails.
+New downloads use the configured target automatically. In the web UI, use
+**Downloads → ReplayGain → Rescan ReplayGain** to explicitly recalculate the
+full library.
 
 The same operation is available from the CLI:
 
@@ -203,23 +171,14 @@ The same operation is available from the CLI:
 yubal replaygain-rescan /app/data
 ```
 
-Override the target for one scan:
+Override the target for one rescan with `--loudness`:
 
 ```bash
 yubal replaygain-rescan /app/data --loudness -16
 ```
 
-Limit the number of worker threads:
-
-```bash
-yubal replaygain-rescan /app/data --threads 8
-```
-
-Use track gain only:
-
-```bash
-yubal replaygain-rescan /app/data --no-album
-```
+The rescan uses all available CPU threads by default. Existing ReplayGain tags
+are recalculated; audio streams are not modified.
 
 ## 🔌 Media Server Integration
 
