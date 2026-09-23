@@ -65,3 +65,38 @@ class TestSyncServiceAudioQuality:
                 config = mock_create.call_args[0][0]
                 assert config.download.quality == 3
                 assert config.download.codec == AudioCodec(codec)
+
+
+class TestSyncServiceReplayGainLoudness:
+    """Tests for ReplayGain loudness propagation."""
+
+    def test_replaygain_loudness_defaults_to_minus_14(self, tmp_path: Path) -> None:
+        service = SyncService(base_path=tmp_path)
+        assert service.replaygain_loudness == -14
+
+    def test_replaygain_loudness_passed_to_download_config(
+        self, tmp_path: Path
+    ) -> None:
+        service = SyncService(
+            base_path=tmp_path,
+            apply_replaygain=True,
+            replaygain_loudness=-16,
+        )
+
+        with patch(
+            "yubal_api.services.sync_service.create_playlist_downloader"
+        ) as mock_create:
+            mock_create.return_value = None
+
+            try:
+                service.run(
+                    "https://example.com",
+                    None,
+                    __import__("yubal").CancelToken(),
+                )
+            except Exception:
+                pass
+
+            config = mock_create.call_args[0][0]
+            assert config.apply_replaygain is True
+            assert config.replaygain_loudness == -16
