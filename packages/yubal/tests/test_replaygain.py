@@ -196,6 +196,8 @@ class TestReplayGainServiceCommandBuilding:
         assert cmd[1] == "custom"
         assert "-s" in cmd
         assert cmd[cmd.index("-s") + 1] == "i"
+        assert "-l" in cmd
+        assert cmd[cmd.index("-l") + 1] == "-14"
         assert "-a" in cmd
         assert "-o" in cmd
         assert cmd[cmd.index("-o") + 1] == "r"
@@ -232,3 +234,54 @@ class TestReplayGainServiceCommandBuilding:
         assert "rsgain" in cmd
         assert "-a" not in cmd
         assert "-o" not in cmd
+
+
+class TestReplayGainLoudness:
+    """Tests for explicit ReplayGain loudness and library rescans."""
+
+    def test_build_command_custom_loudness(self) -> None:
+        service = ReplayGainService()
+        files = [Path("/music/track.opus")]
+
+        cmd = service._build_command(
+            files,
+            AudioCodec.OPUS,
+            album_mode=False,
+            loudness=-16,
+        )
+
+        assert cmd[cmd.index("-l") + 1] == "-16"
+
+    def test_rescan_library_recalculates_all_tracks(
+        self, tmp_path: Path
+    ) -> None:
+        service = ReplayGainService()
+        captured_preset = ""
+
+        def run_side_effect(cmd: list[str], **kwargs: object) -> MagicMock:
+            nonlocal captured_preset
+            preset_path = Path(cmd[cmd.index("-p") + 1])
+            captured_preset = preset_path.read_text()
+            result = MagicMock()
+            result.returncode = 0
+            return result
+
+        with (
+            patch.object(service, "is_available", return_value=True),
+            patch(
+                "yubal.services.replaygain.subprocess.run",
+                side_effect=run_side_effect,
+            ) as mock_run,
+        ):
+            result = service.rescan_library(tmp_path)
+
+        assert result is True
+        cmd = mock_run.call_args[0][0]
+        assert cmd[:2] == ["rsgain", "easy"]
+        assert "-S" not in cmd
+        assert cmd[cmd.index("-m") + 1] == "MAX"
+        assert str(tmp_path) == cmd[-1]
+        assert "TargetLoudness=-14" in captured_preset
+        assert "TagMode=i" in captured_preset
+        assert "Album=true" in captured_preset
+        assert "OpusMode=r" in captured_preset
