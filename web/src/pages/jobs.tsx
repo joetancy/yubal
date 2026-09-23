@@ -1,6 +1,7 @@
 import { UrlInput } from "@/components/common/url-input";
 import { LogsPanel } from "@/features/logs/logs-panel";
 import { JobsPanel } from "@/features/jobs/jobs-panel";
+import { ReplayGainRescanCard } from "@/features/replaygain/replaygain-rescan-card";
 import { useJobs } from "@/features/jobs/jobs-context";
 import { isValidUrl } from "@/lib/url";
 import { Button, InputGroup, NumberField } from "@heroui/react";
@@ -80,6 +81,9 @@ export function JobsPage() {
 
       {/* URL Input Section */}
       <DownloadForm onDownload={startJob} />
+
+      {/* Library maintenance */}
+      <ReplayGainRescanCard />
 
       {/* Downloads Panels */}
       <section className="flex flex-col gap-6">
