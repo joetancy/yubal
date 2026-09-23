@@ -273,6 +273,7 @@ class SyncService:
     fetch_lyrics: bool = True
     ytmusic_lyrics_fallback: bool = True
     apply_replaygain: bool = False
+    replaygain_loudness: int = -14
     ascii_filenames: bool = False
     download_ugc: bool = False
     cache_path: Path | None = None
@@ -317,6 +318,7 @@ class SyncService:
             fetch_lyrics=self.fetch_lyrics,
             ytmusic_lyrics_fallback=self.ytmusic_lyrics_fallback,
             apply_replaygain=self.apply_replaygain,
+            replaygain_loudness=self.replaygain_loudness,
             ascii_filenames=self.ascii_filenames,
             download_ugc=self.download_ugc,
             cache_path=self.cache_path,
@@ -349,6 +351,7 @@ class _SyncWorkflow:
     fetch_lyrics: bool
     ytmusic_lyrics_fallback: bool
     apply_replaygain: bool
+    replaygain_loudness: int
     ascii_filenames: bool
     download_ugc: bool
     cache_path: Path | None
@@ -408,6 +411,7 @@ class _SyncWorkflow:
             save_cover=True,
             max_items=self.max_items,
             apply_replaygain=self.apply_replaygain,
+            replaygain_loudness=self.replaygain_loudness,
             cache_path=self.cache_path,
         )
         return create_playlist_downloader(config, cookies_path=self.cookies_path)
