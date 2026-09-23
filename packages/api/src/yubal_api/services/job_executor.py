@@ -51,6 +51,7 @@ class JobExecutor:
         fetch_lyrics: bool = True,
         ytmusic_lyrics_fallback: bool = True,
         apply_replaygain: bool = False,
+        replaygain_loudness: int = -14,
         ascii_filenames: bool = False,
         download_ugc: bool = False,
         subscription_service: SubscriptionService | None = None,
@@ -69,6 +70,7 @@ class JobExecutor:
             ytmusic_lyrics_fallback: Whether to fall back to YouTube Music lyrics
                 when lrclib.net has no match.
             apply_replaygain: Whether to apply ReplayGain tags using rsgain.
+            replaygain_loudness: ReplayGain target loudness in LUFS.
             ascii_filenames: Whether to transliterate unicode to ASCII in filenames.
             download_ugc: Whether to download UGC tracks to _Unofficial folder.
             subscription_service: Optional service to update subscription metadata.
@@ -83,6 +85,7 @@ class JobExecutor:
         self._fetch_lyrics = fetch_lyrics
         self._ytmusic_lyrics_fallback = ytmusic_lyrics_fallback
         self._apply_replaygain = apply_replaygain
+        self._replaygain_loudness = replaygain_loudness
         self._ascii_filenames = ascii_filenames
         self._download_ugc = download_ugc
         self._subscription_service = subscription_service
@@ -232,16 +235,17 @@ class JobExecutor:
 
                 # Run sync in thread pool
                 sync_service = SyncService(
-                    self._base_path,
-                    self._audio_format,
-                    self._cookies_path,
-                    self._fetch_lyrics,
-                    self._ytmusic_lyrics_fallback,
-                    self._apply_replaygain,
-                    self._ascii_filenames,
-                    self._download_ugc,
-                    self._cache_path,
-                    self._audio_quality,
+                    base_path=self._base_path,
+                    audio_format=self._audio_format,
+                    cookies_path=self._cookies_path,
+                    fetch_lyrics=self._fetch_lyrics,
+                    ytmusic_lyrics_fallback=self._ytmusic_lyrics_fallback,
+                    apply_replaygain=self._apply_replaygain,
+                    replaygain_loudness=self._replaygain_loudness,
+                    ascii_filenames=self._ascii_filenames,
+                    download_ugc=self._download_ugc,
+                    cache_path=self._cache_path,
+                    audio_quality=self._audio_quality,
                 )
                 result = await asyncio.to_thread(
                     sync_service.run,
