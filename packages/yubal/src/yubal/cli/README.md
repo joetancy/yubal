@@ -77,10 +77,28 @@ yubal download "https://music.youtube.com/watch?v=VIDEO_ID" ~/Music --codec flac
 | `--no-m3u` | Disable M3U playlist file generation |
 | `--no-cover` | Disable cover image saving |
 | `--no-replaygain` | Disable ReplayGain tagging |
+| `--replaygain-loudness` | ReplayGain target loudness in LUFS (default: -14) |
 
 ReplayGain applies track gain to downloaded files. Album gain is only calculated
 for complete album downloads; playlists and partial album downloads use track
 gain only.
+
+#### `replaygain-rescan` - Rescan the full music library
+
+Recalculate ReplayGain tags for all supported audio files under a directory.
+Existing ReplayGain tags are recalculated.
+
+```sh
+yubal replaygain-rescan ~/Music
+yubal replaygain-rescan ~/Music --loudness -16
+yubal replaygain-rescan ~/Music --threads 8
+```
+
+| Option | Description |
+| --- | --- |
+| `--loudness` | Target loudness in LUFS (default: -14) |
+| `--threads` | rsgain worker count or `MAX` (default: `MAX`) |
+| `--no-album` | Calculate track gain only |
 
 #### `tags` - Inspect audio file tags
 

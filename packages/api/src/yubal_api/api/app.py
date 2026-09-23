@@ -36,6 +36,7 @@ from yubal_api.api.routes import (
     info,
     jobs,
     logs,
+    replaygain,
     scheduler,
     subscriptions,
 )
@@ -170,6 +171,7 @@ def create_services(repository: SubscriptionRepository) -> Services:
         fetch_lyrics=settings.fetch_lyrics,
         ytmusic_lyrics_fallback=settings.ytmusic_lyrics_fallback,
         apply_replaygain=settings.replaygain,
+        replaygain_loudness=settings.replaygain_loudness,
         ascii_filenames=settings.ascii_filenames,
         download_ugc=settings.download_ugc,
         subscription_service=subscription_service,
@@ -206,6 +208,7 @@ def create_api_router() -> APIRouter:
     api_router.include_router(info.router)
     api_router.include_router(jobs.router)
     api_router.include_router(logs.router)
+    api_router.include_router(replaygain.router)
     api_router.include_router(cookies.router)
     api_router.include_router(subscriptions.router)
     api_router.include_router(scheduler.router)

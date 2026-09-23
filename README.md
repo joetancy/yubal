@@ -135,6 +135,7 @@ docker compose up -d
 | `YUBAL_YTMUSIC_LYRICS_FALLBACK` | Fall back to YouTube Music lyrics on lrclib miss  | `true`           |
 | `YUBAL_DOWNLOAD_UGC`            | Download user-generated content to `_Unofficial/` | `false`          |
 | `YUBAL_REPLAYGAIN`              | Apply track gain; album gain for complete albums  | `true`           |
+| `YUBAL_REPLAYGAIN_LOUDNESS`     | ReplayGain target loudness in LUFS                | `-14`            |
 | `YUBAL_JOB_TIMEOUT_SECONDS`     | Job execution timeout in seconds                  | `1800`           |
 | `YUBAL_BASE_PATH`               | URL base path for reverse proxy subfolder         | —                |
 | `YUBAL_TZ`                      | Timezone (IANA format)                            | `UTC`            |
@@ -154,6 +155,30 @@ docker compose up -d
 | `YUBAL_TEMP`            | Temp directory                      | System temp      |
 
 </details>
+
+### ReplayGain
+
+ReplayGain is enabled by default and uses a target loudness of **-14 LUFS**.
+Change it with `YUBAL_REPLAYGAIN_LOUDNESS`.
+
+New downloads use the configured target automatically. In the web UI, use
+**Downloads → ReplayGain → Rescan ReplayGain** to explicitly recalculate the
+full library.
+
+The same operation is available from the CLI:
+
+```bash
+yubal replaygain-rescan /app/data
+```
+
+Override the target for one rescan with `--loudness`:
+
+```bash
+yubal replaygain-rescan /app/data --loudness -16
+```
+
+The rescan uses all available CPU threads by default. Existing ReplayGain tags
+are recalculated; audio streams are not modified.
 
 ## 🔌 Media Server Integration
 

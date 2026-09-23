@@ -99,6 +99,12 @@ class Settings(BaseSettings):
         default=True,
         description="Apply ReplayGain tags using rsgain",
     )
+    replaygain_loudness: int = Field(
+        default=-14,
+        ge=-30,
+        le=0,
+        description="ReplayGain target loudness in LUFS",
+    )
 
     # Temp directory
     temp: Path = Field(

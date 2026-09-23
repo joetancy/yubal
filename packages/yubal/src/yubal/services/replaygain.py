@@ -3,6 +3,7 @@
 import logging
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Protocol
 
@@ -27,8 +28,20 @@ class ReplayGainProtocol(Protocol):
         codec: AudioCodec,
         *,
         album_mode: bool = True,
+        loudness: int = -14,
     ) -> bool:
         """Apply ReplayGain tags to audio files."""
+        ...
+
+    def rescan_library(
+        self,
+        library_path: Path,
+        *,
+        loudness: int = -14,
+        threads: str = "MAX",
+        album_mode: bool = True,
+    ) -> bool:
+        """Recalculate ReplayGain tags for an entire music library."""
         ...
 
 
@@ -78,6 +91,7 @@ class ReplayGainService:
         codec: AudioCodec,
         *,
         album_mode: bool = True,
+        loudness: int = -14,
     ) -> bool:
         """Apply ReplayGain tags to audio files using rsgain.
 
@@ -89,6 +103,7 @@ class ReplayGainService:
             codec: Audio codec of the files (affects tag format for Opus).
             album_mode: If True, calculate album gain in addition to track gain.
                        Use False for playlists or partial album downloads.
+            loudness: Target loudness in LUFS. Defaults to -14.
 
         Returns:
             True if rsgain completed successfully, False on any error.
@@ -120,7 +135,12 @@ class ReplayGainService:
             )
             album_mode = False
 
-        cmd = self._build_command(existing_files, codec, album_mode=album_mode)
+        cmd = self._build_command(
+            existing_files,
+            codec,
+            album_mode=album_mode,
+            loudness=loudness,
+        )
 
         try:
             result = subprocess.run(
@@ -158,12 +178,93 @@ class ReplayGainService:
             logger.warning("Failed to run rsgain: %s", e)
             return False
 
+    def rescan_library(
+        self,
+        library_path: Path,
+        *,
+        loudness: int = -14,
+        threads: str = "MAX",
+        album_mode: bool = True,
+    ) -> bool:
+        """Recalculate ReplayGain tags for every supported track in a library.
+
+        Uses rsgain easy mode so each album directory is scanned independently.
+        Existing ReplayGain tags are not skipped and are recalculated.
+
+        Args:
+            library_path: Root directory of the music library.
+            loudness: Target loudness in LUFS. Defaults to -14.
+            threads: rsgain worker count or "MAX".
+            album_mode: Whether to calculate album gain.
+
+        Returns:
+            True if the full library scan completed successfully.
+        """
+        if not self.is_available():
+            logger.warning("rsgain not found in PATH, cannot rescan ReplayGain")
+            return False
+
+        if not library_path.is_dir():
+            logger.warning("ReplayGain library path does not exist: %s", library_path)
+            return False
+
+        preset = (
+            "[Global]\n"
+            "TagMode=i\n"
+            f"TargetLoudness={loudness}\n"
+            f"Album={'true' if album_mode else 'false'}\n"
+            "\n[Opus]\n"
+            "OpusMode=r\n"
+        )
+
+        preset_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                suffix=".ini",
+                prefix="yubal-rsgain-",
+                delete=False,
+            ) as preset_file:
+                preset_file.write(preset)
+                preset_path = Path(preset_file.name)
+
+            cmd = [
+                "rsgain",
+                "easy",
+                "-p",
+                str(preset_path),
+                "-m",
+                threads,
+                str(library_path),
+            ]
+            result = subprocess.run(cmd, check=False)
+            if result.returncode != 0:
+                logger.warning(
+                    "rsgain library rescan failed with exit code %d",
+                    result.returncode,
+                )
+                return False
+
+            logger.info(
+                "ReplayGain library rescan complete at %d LUFS: %s",
+                loudness,
+                library_path,
+            )
+            return True
+        except OSError as e:
+            logger.warning("Failed to run rsgain library rescan: %s", e)
+            return False
+        finally:
+            if preset_path is not None:
+                preset_path.unlink(missing_ok=True)
+
     def _build_command(
         self,
         files: list[Path],
         codec: AudioCodec,
         *,
         album_mode: bool,
+        loudness: int = -14,
     ) -> list[str]:
         """Build the rsgain command with appropriate flags.
 
@@ -171,12 +272,13 @@ class ReplayGainService:
             files: List of audio file paths to process.
             codec: Audio codec of the files.
             album_mode: Whether to calculate album gain.
+            loudness: Target loudness in LUFS.
 
         Returns:
             Command list suitable for subprocess.run().
         """
         # Base command: rsgain custom -q -s i (quiet mode, scan and INSERT tags)
-        cmd = ["rsgain", "custom", "-q", "-s", "i"]
+        cmd = ["rsgain", "custom", "-q", "-s", "i", "-l", str(loudness)]
 
         # Add album mode flag
         if album_mode:

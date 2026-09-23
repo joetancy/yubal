@@ -64,6 +64,7 @@ class PlaylistDownloadConfig:
         skip_album_m3u: Skip M3U generation for album playlists.
         max_items: Maximum number of tracks to download.
         apply_replaygain: Whether to apply ReplayGain tags using rsgain.
+        replaygain_loudness: ReplayGain target loudness in LUFS.
         cache_path: Directory for extraction cache. None disables caching.
     """
 
@@ -73,4 +74,5 @@ class PlaylistDownloadConfig:
     skip_album_m3u: bool = True
     max_items: int | None = None
     apply_replaygain: bool = True
+    replaygain_loudness: int = -14
     cache_path: Path | None = None

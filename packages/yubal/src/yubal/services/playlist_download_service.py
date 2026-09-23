@@ -593,6 +593,7 @@ class PlaylistDownloadService:
             downloaded_files,
             self._config.download.codec,
             album_mode=is_complete_album,
+            loudness=self._config.replaygain_loudness,
         )
 
         if success:
