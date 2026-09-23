@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
@@ -26,7 +27,7 @@ class ReplayGainRescanStatus(BaseModel):
     success: bool | None = None
 
 
-async def _run_rescan(library_path: object, loudness: int) -> bool:
+async def _run_rescan(library_path: Path, loudness: int) -> bool:
     """Run the blocking rsgain scan outside the event loop."""
     service = ReplayGainService()
     try:
