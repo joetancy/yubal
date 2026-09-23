@@ -4,7 +4,13 @@ from typing import Annotated
 
 import typer
 
-from yubal.cli.commands import download_cmd, meta_cmd, tags_cmd, version_cmd
+from yubal.cli.commands import (
+    download_cmd,
+    meta_cmd,
+    replaygain_rescan_cmd,
+    tags_cmd,
+    version_cmd,
+)
 from yubal.cli.logging import setup_logging
 
 app = typer.Typer(
@@ -31,6 +37,7 @@ def main(
 app.command(name="meta")(meta_cmd)
 app.command(name="download")(download_cmd)
 app.command(name="tags")(tags_cmd)
+app.command(name="replaygain-rescan")(replaygain_rescan_cmd)
 app.command(name="version")(version_cmd)
 
 
