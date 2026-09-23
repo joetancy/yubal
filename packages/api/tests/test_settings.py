@@ -259,3 +259,24 @@ class TestLyricsSettings:
         monkeypatch.setenv("YUBAL_YTMUSIC_LYRICS_FALLBACK", "false")
         settings = Settings()
         assert settings.ytmusic_lyrics_fallback is False
+
+
+class TestReplayGainSettings:
+    """Tests for ReplayGain configuration."""
+
+    def test_replaygain_loudness_defaults_to_minus_14(self) -> None:
+        settings = _create_settings()
+        assert settings.replaygain_loudness == -14
+
+    def test_replaygain_loudness_env_override(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("YUBAL_ROOT", str(TEST_ROOT))
+        monkeypatch.setenv("YUBAL_REPLAYGAIN_LOUDNESS", "-16")
+        settings = Settings()
+        assert settings.replaygain_loudness == -16
+
+    @pytest.mark.parametrize("loudness", [-31, 1])
+    def test_replaygain_loudness_rejects_out_of_range(self, loudness: int) -> None:
+        with pytest.raises(ValidationError):
+            _create_settings(replaygain_loudness=loudness)
