@@ -33,6 +33,17 @@ class ReplayGainProtocol(Protocol):
         """Apply ReplayGain tags to audio files."""
         ...
 
+    def rescan_library(
+        self,
+        library_path: Path,
+        *,
+        loudness: int = -14,
+        threads: str = "MAX",
+        album_mode: bool = True,
+    ) -> bool:
+        """Recalculate ReplayGain tags for an entire music library."""
+        ...
+
 
 # Timeout for rsgain execution (5 minutes should be enough for most albums)
 RSGAIN_TIMEOUT = 300
@@ -166,7 +177,6 @@ class ReplayGainService:
         except OSError as e:
             logger.warning("Failed to run rsgain: %s", e)
             return False
-
 
     def rescan_library(
         self,
