@@ -161,8 +161,11 @@ docker compose up -d
 ReplayGain is enabled by default and uses a target loudness of **-14 LUFS**.
 Change it with `YUBAL_REPLAYGAIN_LOUDNESS`.
 
-New downloads use the configured target automatically. To explicitly
-recalculate ReplayGain tags for every supported track already in the library:
+New downloads use the configured target automatically. In the web UI, use
+**Downloads → ReplayGain → Rescan ReplayGain** to explicitly recalculate the
+full library.
+
+The same operation is available from the CLI:
 
 ```bash
 yubal replaygain-rescan /app/data
