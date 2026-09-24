@@ -252,9 +252,7 @@ class TestReplayGainLoudness:
 
         assert cmd[cmd.index("-l") + 1] == "-16"
 
-    def test_rescan_library_recalculates_all_tracks(
-        self, tmp_path: Path
-    ) -> None:
+    def test_rescan_library_recalculates_all_tracks(self, tmp_path: Path) -> None:
         service = ReplayGainService()
         captured_preset = ""
 

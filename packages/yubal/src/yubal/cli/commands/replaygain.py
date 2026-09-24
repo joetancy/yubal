@@ -53,9 +53,7 @@ def replaygain_rescan_cmd(
     console = Console()
     service = ReplayGainService()
 
-    console.print(
-        f"Rescanning ReplayGain at {loudness} LUFS: [cyan]{library}[/cyan]"
-    )
+    console.print(f"Rescanning ReplayGain at {loudness} LUFS: [cyan]{library}[/cyan]")
     success = service.rescan_library(
         library,
         loudness=loudness,
