@@ -8,7 +8,9 @@ export interface ReplayGainRescanStatus {
 
 const RESCAN_URL = `${basePath}/api/replaygain/rescan`;
 
-async function parseStatus(response: Response): Promise<ReplayGainRescanStatus> {
+async function parseStatus(
+  response: Response,
+): Promise<ReplayGainRescanStatus> {
   if (!response.ok) {
     throw new Error("ReplayGain rescan request failed");
   }

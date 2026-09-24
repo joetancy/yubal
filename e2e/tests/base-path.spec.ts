@@ -19,9 +19,7 @@ test("page loads at root with no errors", async ({ page }) => {
 
   await page.goto("./");
   await expect(page.getByRole("navigation")).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Downloads" })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Downloads" })).toBeVisible();
   expect(errors).toEqual([]);
   expect(failedAssets).toEqual([]);
 });
@@ -48,9 +46,7 @@ test("client-side navigation does not stack paths", async ({
 
   // Navigate back home
   await page.getByRole("link", { name: "yubal" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Downloads" })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Downloads" })).toBeVisible();
   // URL should match the app root — no stacking like /yubal/yubal/
   const rootUrl = baseURL!.endsWith("/") ? baseURL! : baseURL + "/";
   expect(page.url()).toBe(rootUrl);
