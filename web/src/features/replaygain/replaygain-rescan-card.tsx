@@ -15,44 +15,44 @@ export function ReplayGainRescanCard() {
   const [isStarting, setIsStarting] = useState(false);
   const previousRunning = useRef<boolean | null>(null);
 
-  const refreshStatus = useCallback(async () => {
-    try {
-      const next = await getReplayGainRescanStatus();
-
-      if (previousRunning.current === true && !next.running) {
-        if (next.success) {
-          showSuccessToast(
-            "ReplayGain rescan complete",
-            `Library rescanned at ${next.loudness} LUFS.`,
-          );
-        } else if (next.success === false) {
-          showErrorToast(
-            "ReplayGain rescan failed",
-            "Check the server logs for rsgain details.",
-          );
-        }
+  const applyStatus = useCallback((next: ReplayGainRescanStatus) => {
+    if (previousRunning.current === true && !next.running) {
+      if (next.success) {
+        showSuccessToast(
+          "ReplayGain rescan complete",
+          `Library rescanned at ${next.loudness} LUFS.`,
+        );
+      } else if (next.success === false) {
+        showErrorToast(
+          "ReplayGain rescan failed",
+          "Check the server logs for rsgain details.",
+        );
       }
-
-      previousRunning.current = next.running;
-      setStatus(next);
-    } catch (error) {
-      console.error("Failed to get ReplayGain rescan status:", error);
     }
+
+    previousRunning.current = next.running;
+    setStatus(next);
   }, []);
 
+  const loadStatus = useCallback(() => {
+    void getReplayGainRescanStatus()
+      .then(applyStatus)
+      .catch((error: unknown) => {
+        console.error("Failed to get ReplayGain rescan status:", error);
+      });
+  }, [applyStatus]);
+
   useEffect(() => {
-    void refreshStatus();
-  }, [refreshStatus]);
+    loadStatus();
+  }, [loadStatus]);
 
   useEffect(() => {
     if (!status?.running) return;
 
-    const timer = window.setInterval(() => {
-      void refreshStatus();
-    }, POLL_INTERVAL_MS);
+    const timer = window.setInterval(loadStatus, POLL_INTERVAL_MS);
 
     return () => window.clearInterval(timer);
-  }, [status?.running, refreshStatus]);
+  }, [status?.running, loadStatus]);
 
   const handleRescan = async () => {
     setIsStarting(true);
